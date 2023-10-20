@@ -3,6 +3,66 @@ let from = "toulon";
 let to = "nice";
 let distanceKilometre;
 
+import { cardata } from './carData.js';
+
+// Fonction pour effectuer le calcul du coût
+function calculatePrice() {
+    // Récupération des valeurs des champs du formulaire
+    const consommation = parseFloat(document.getElementById('consommation').value);
+    const prixCarburant = parseFloat(document.getElementById('prix-carburant').value);
+    const coutPeage = parseFloat(document.getElementById('cout-peage').value);
+    const nombreTrajets = parseInt(document.getElementById('nombre-trajets').value);
+    const allerRetour = document.getElementById('aller-retour').checked;
+    const passagers = parseInt(document.getElementById('passagers').value);
+
+    // Vérification des données d'entrée (assurez-vous qu'elles sont numériques et valides)
+    if (isNaN(consommation) || isNaN(prixCarburant) || isNaN(coutPeage) || isNaN(nombreTrajets)) {
+        alert("Veuillez saisir des valeurs numériques valides.");
+        return;
+    }
+
+    // Conversion de la consommation en litres par kilomètre
+    const consommationParKm = (consommation / 100);
+
+    // Supposons que "selectedCar" contient la valeur de la marque de voiture sélectionnée
+    const selectedCar = document.getElementById("Car").value;
+
+    // Recherche du coût d'usure en fonction de la marque de voiture sélectionnée
+    const selectedCarData = cardata.find(car => car.marque === selectedCar);
+
+    if (selectedCarData) {
+        const coutUsureParKm = selectedCarData.coutParKm;
+
+        // Utilisez la variable distanceKilometre déjà déclarée
+        let coutCarburantTotal = distanceKilometre * consommationParKm * prixCarburant;
+
+        if (allerRetour) {
+            coutCarburantTotal *= 2;
+            coutCarburantTotal += coutPeage * 2;
+        } else {
+            coutCarburantTotal += coutPeage;
+        }
+
+        // Estimation du coût total du trajet en fonction du nombre de trajets
+        const coutTotalTrajet = (coutCarburantTotal * nombreTrajets + distanceKilometre * coutUsureParKm).toFixed(2);
+
+        // Affichage du coût total du trajet
+        const resultatPrix = document.getElementById('resultat-prix');
+        resultatPrix.textContent = `Coût total du trajet : ${coutTotalTrajet} €`;
+
+        // Calcul du coût par passager en fonction du nombre de passagers
+        const prixPassagers = document.getElementById('prix-passagers');
+        if (passagers > 0) {
+            const coutParPassager = (coutTotalTrajet / (passagers + 1)).toFixed(2);
+            prixPassagers.textContent = `Coût par passager : ${coutParPassager} € par passager`;
+        } else {
+            prixPassagers.textContent = `Coût par passager : 0.00 €`;
+        }
+    } else {
+        console.log("Marque de voiture non trouvée dans les données.");
+    }
+}
+
 const directionsForm = document.getElementById('directions-form');
 
 if (directionsForm) {
@@ -35,52 +95,12 @@ if (directionsForm) {
     });
 }
 
-function calculatePrice() {
-    // Récupération des valeurs des champs du formulaire
-    const consommation = parseFloat(document.getElementById('consommation').value);
-    const prixCarburant = parseFloat(document.getElementById('prix-carburant').value);
-    const coutPeage = parseFloat(document.getElementById('cout-peage').value);
-    const nombreTrajets = parseInt(document.getElementById('nombre-trajets').value);
-    const allerRetour = document.getElementById('aller-retour').checked;
-    const passagers = parseInt(document.getElementById('passagers').value);
+// Code pour remplir la picklist (menu déroulant)
+const selectElement = document.getElementById("Car");
 
-    // Vérification des données d'entrée (assurez-vous qu'elles sont numériques et valides)
-    if (isNaN(consommation) || isNaN(prixCarburant) || isNaN(coutPeage) || isNaN(nombreTrajets)) {
-        alert("Veuillez saisir des valeurs numériques valides.");
-        return;
-    }
-
-    // Conversion de la consommation en litres par kilomètre
-    const consommationParKm = (consommation / 100);
-
-    // Utilisez la variable distanceKilometre déjà déclarée
-    let coutCarburantTotal = distanceKilometre * consommationParKm * prixCarburant;
-
-    // Prise en compte des frais de péage pour l'aller-retour
-    if (allerRetour) {
-        coutCarburantTotal *= 2; // Double le coût du carburant pour un aller-retour
-        coutCarburantTotal += coutPeage * 2; // Double les frais de péage pour un aller-retour
-    } else {
-        coutCarburantTotal += coutPeage; // Les frais de péage pour un seul trajet
-    }
-
-    // Estimation du coût d'usure de la voiture
-    const coutUsureParKm = 1500 / 15000; // 1500 € par an pour 15 000 km
-    const coutUsureTotal = distanceKilometre * coutUsureParKm;
-
-    // Calcul du coût total du trajet en fonction du nombre de trajets
-    const coutTotalTrajet = (coutCarburantTotal * nombreTrajets + coutUsureTotal).toFixed(2);
-
-    // Affichage du coût total du trajet
-    const resultatPrix = document.getElementById('resultat-prix');
-    resultatPrix.textContent = `Coût total du trajet : ${coutTotalTrajet} €`;
-
-    // Calcul du coût par passager en fonction du nombre de passagers
-    const prixPassagers = document.getElementById('prix-passagers');
-    if (passagers > 0) {
-        const coutParPassager = (coutTotalTrajet / (passagers + 1)).toFixed(2);
-        prixPassagers.textContent = `Coût par passager : ${coutParPassager} € par passager`;
-    } else {
-        prixPassagers.textContent = `Coût par passager : 0.00 €`;
-    }
-}
+cardata.forEach(cardata => { // Assurez-vous d'utiliser le nom correct, c'est "cardata"
+    const option = document.createElement("option");
+    option.value = cardata.marque;
+    option.textContent = cardata.marque;
+    selectElement.appendChild(option);
+});
